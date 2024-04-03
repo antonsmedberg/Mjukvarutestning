@@ -1,6 +1,11 @@
 import unittest
+import logging
 from unittest.mock import patch
-from mock_api import get_user_data, perform_api_call, timeout_mock, server_error_mock, not_found_mock, internal_server_error_mock
+from mock_api import get_user_data, perform_api_call, timeout_mock, server_error_mock
+
+# Konfigurera loggning
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class TestMockAPI(unittest.TestCase):
     def setUp(self):
@@ -17,7 +22,7 @@ class TestMockAPI(unittest.TestCase):
         mock_perform_api_call.return_value = self.expected_response
         response = perform_api_call(self.api_endpoint, self.api_data)
         self.assertEqual(response, self.expected_response)
-        print("Tested API call with expected response. Response:", response)
+        logger.info("Tested API call with expected response. Response: %s", response)
 
     def test_retrieve_valid_user_data(self):
         """Testar hämtning av användardata med giltigt användar-ID."""
@@ -26,27 +31,27 @@ class TestMockAPI(unittest.TestCase):
         self.assertEqual(user_data["id"], self.valid_user_id)
         self.assertEqual(user_data["username"], "mockuser1")
         self.assertEqual(user_data["email"], "mockuser1@example.com")
-        print("Retrieved valid user data:", user_data)
+        logger.info("Retrieved valid user data: %s", user_data)
 
     def test_retrieve_invalid_user_data(self):
         """Testar hämtning av användardata med ogiltigt användar-ID."""
         user_data = get_user_data(self.invalid_user_id)
         self.assertIsNone(user_data)
-        print("Retrieved invalid user data:", user_data)
+        logger.info("Retrieved invalid user data: %s", user_data)
 
     def test_perform_api_call_with_invalid_data(self):
         """Testar API-anrop med ogiltiga data."""
         invalid_data = {"invalid_key": "invalid_value"}
         response = perform_api_call(self.api_endpoint, invalid_data)
         self.assertEqual(response, {"status": "error", "message": "Unexpected data", "code": 400})
-        print("Performed API call with invalid data. Response:", response)
+        logger.info("Performed API call with invalid data. Response: %s", response)
 
     def test_get_user_data_with_invalid_id(self):
         """Testar hämtning av användardata med icke-existerande användar-ID."""
         invalid_user_id = 999  # Antag att detta ID inte finns
         user_data = get_user_data(invalid_user_id)
         self.assertIsNone(user_data)
-        print("Retrieved user data with invalid ID:", user_data)
+        logger.info("Retrieved user data with invalid ID: %s", user_data)
 
     @patch('mock_api.perform_api_call', side_effect=TimeoutError("Connection timed out"))
     def test_api_call_with_timeout(self, mock_perform_api_call):
@@ -54,7 +59,7 @@ class TestMockAPI(unittest.TestCase):
         with self.assertRaises(TimeoutError) as context:
             mock_perform_api_call(self.api_endpoint, self.api_data)
         self.assertTrue("Connection timed out" in str(context.exception))
-        print("Tested API call with timeout.")
+        logger.info("Tested API call with timeout.")
 
     @patch('mock_api.perform_api_call', side_effect=ConnectionError("Server error"))
     def test_api_call_with_server_error_mock(self, mock_perform_api_call):
@@ -62,7 +67,7 @@ class TestMockAPI(unittest.TestCase):
         with self.assertRaises(ConnectionError) as context:
             mock_perform_api_call(self.api_endpoint, self.api_data)
         self.assertTrue("Server error" in str(context.exception))
-        print("Tested API call with server error mock.")
+        logger.info("Tested API call with server error mock.")
 
 
 def test_api_call_with_different_data(self):
@@ -80,7 +85,7 @@ def test_api_call_with_different_data(self):
             response = perform_api_call(self.api_endpoint, input_data)
             # Jämför den faktiska responsen med den förväntade responsen
             self.assertEqual(response, expected_response)
-            print("Tested API call with different data. Input data:", input_data, "Response:", response)
+            logger.info("Tested API call with different data. Input data: %s, Response: %s", input_data, response)
 
 @patch('mock_api.perform_api_call', side_effect=ConnectionError("Server error"))
 def test_api_call_with_server_error_message(self, mock_perform_api_call):
@@ -88,7 +93,7 @@ def test_api_call_with_server_error_message(self, mock_perform_api_call):
     # Implementera testet för att kontrollera att en ConnectionError kastas
     with self.assertRaises(ConnectionError):
         perform_api_call(self.api_endpoint, self.api_data)
-    print("Tested API call with server error message.")
+    logger.info("Tested API call with server error message.")
 
 
 if __name__ == "__main__":
