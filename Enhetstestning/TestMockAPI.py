@@ -1,11 +1,36 @@
 import unittest
 import logging
+import sys
 from unittest.mock import patch
 from mock_api import get_user_data, perform_api_call, timeout_mock, server_error_mock
 
 # Konfigurera loggning
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+# Lägg till färgkoder för olika loggningsnivåer
+LOG_COLORS = {
+    'CRITICAL': '\033[91m',  # Röd färg för kritiska fel
+    'ERROR': '\033[91m',      # Röd färg för fel
+    'WARNING': '\033[93m',    # Gul färg för varningar
+    'INFO': '\033[92m',       # Grön färg för information
+    'DEBUG': '\033[94m',      # Blå färg för debug-meddelanden
+    'ENDC': '\033[0m'         # Återställ till standardfärg
+}
+
+class ColoredFormatter(logging.Formatter):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def format(self, record):
+        log_level = record.levelname
+        log_msg = super().format(record)
+        return f"{LOG_COLORS.get(log_level, '')}{log_msg}{LOG_COLORS['ENDC']}"
+
+logger.setLevel(logging.INFO)
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setFormatter(ColoredFormatter('%(asctime)s - %(levelname)s - %(message)s'))
+logger.addHandler(console_handler)
 
 class TestMockAPI(unittest.TestCase):
     def setUp(self):
@@ -98,6 +123,7 @@ def test_api_call_with_server_error_message(self, mock_perform_api_call):
 
 if __name__ == "__main__":
     unittest.main()
+
 
 
 
